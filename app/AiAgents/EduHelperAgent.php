@@ -3,27 +3,13 @@
 namespace App\AiAgents;
 
 use LarAgent\Agent;
-use LarAgent\History\InMemoryChatHistory;
-use LarAgent\Context\Drivers\InMemoryStorage;
+
 
 class EduHelperAgent extends Agent
 {
     protected $model = 'llama-3.3-70b-versatile';
 
     protected $provider = 'groq';
-
-    protected $tools = [];
-
-    protected $chatHistoryDriver = InMemoryChatHistory::class;
-
-
-    protected $storage = [
-        InMemoryStorage::class,
-    ];
-
-    protected $historyStorage = [
-        InMemoryStorage::class,
-    ];
 
     public function instructions()
     {
