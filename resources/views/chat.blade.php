@@ -28,9 +28,18 @@
 
     <div id="chatbox"></div>
 
-    <input id="msg" type="text" placeholder="Type your question..." />
-    <button onclick="sendMsg()">Send</button>
+    <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
 
+        <input id="msg" type="text" placeholder="Type your question..."
+            style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px;" />
+
+        <button onclick="sendMsg()">Send</button>
+
+        <button onclick="clearChat()" style="background:#dc3545;">
+            Clear
+        </button>
+
+    </div>
     <script>
 
         async function sendMsg(autoMsg = null) {
@@ -78,11 +87,57 @@
                 });
             }
         }
+        function clearChat() {
+            fetch('/clear-chat', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                const box = document.getElementById('chatbox');
+                box.innerHTML = ''; // clear UI
 
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Chat Cleared',
+                    text: 'New conversation started!'
+                });
+            });
+        }
+        function displayMessage(role, content) {
+            const box = document.getElementById('chatbox');
+
+            if (role === 'user') {
+                box.innerHTML += `<p class="user"><b>You:</b> ${content}</p>`;
+            } else {
+                box.innerHTML += `<p class="bot"><b>EduHelper :</b> ${content}</p>`;
+            }
+
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function loadHistory() {
+            fetch('/chat-history')
+                .then(res => res.json())
+                .then(data => {
+                    const box = document.getElementById('chatbox');
+                    box.innerHTML = ''; // clear first
+
+                    data.history.forEach(msg => {
+                        displayMessage(msg.role, msg.content);
+                    });
+                });
+        }
+        window.onload = function () {
+            loadHistory();
+        };
 
         document.getElementById('msg').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') sendMsg();
         });
+
     </script>
 </body>
 </html>
