@@ -20,6 +20,7 @@
         input  { width: 75%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
         button { padding: 10px 18px; background: #2d6a4f; color: white; border: none; border-radius: 6px; cursor: pointer; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <h2>EduHelper — Your Learning Assistant</h2>
@@ -34,7 +35,7 @@
 
         async function sendMsg(autoMsg = null) {
             const input = document.getElementById('msg');
-            const msg = autoMsg || input.value.trim();
+            const msg = input.value.trim();
             if (!msg) return;
 
             const box = document.getElementById('chatbox');
@@ -44,18 +45,38 @@
                 input.value = '';
             }
 
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ message: msg })
-            });
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ message: msg })
+                });
 
-            const data = await res.json();
-            box.innerHTML += `<p class="bot"><b>EduHelper :</b> ${data.reply}</p>`;
-            box.scrollTop = box.scrollHeight;
+                const data = await res.json().catch(() => null);
+
+                if (!res.ok) {
+                    const err = (data && data.errors && data.errors.message) ? data.errors.message[0] : (data && data.error) || 'An error occurred';
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err,
+                    });
+                    return;
+                }
+
+                box.innerHTML += `<p class="bot"><b>EduHelper :</b> ${data.reply}</p>`;
+                box.scrollTop = box.scrollHeight;
+            } catch (e) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Network error',
+                    text: 'Please try again.',
+                });
+            }
         }
 
 
